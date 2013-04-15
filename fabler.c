@@ -37,17 +37,18 @@ void create_child(void) {
 }
 
 int child(void) {
-  char *program = "/usr/bin/true";
-  char *nothing[0];
+  char *program = "true";
+  char *argv[1];
+  argv[0] = program;
   int ret;
-  ret = execv(program, nothing);
+  ret = execvp(program, argv);
   return ret;
 }
 
 int parent(void) {
   pid_t finished;
-  int status;
-  finished = wait(status);
-  printf("Child process with PID %d terminated with exit status %d\n.", finished, status);
+  int status = 0;
+  finished = wait(&status);
+  printf("Child process with PID %d terminated with exit status %d.\n", finished, status);
   return status;
 }

@@ -3,6 +3,16 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+struct RIPPacket {
+  int command;
+  int version;
+  int afi;
+  int ip_address;
+  int subnet_mask;
+  int next_hop;
+  int metric;
+};
+
 void print_args(int argc, char *argv[]);
 void create_child(void);
 int child(void);
@@ -13,11 +23,36 @@ int run_child(int argc, char *argv[]);
 int main(int argc, char *argv[])
 {
   char *prefix = argv[1];
-  int ret = 1000;
-  ret = run_child(argc, argv);
-  printf("Prefix: %s\n", prefix);
-  printf("Ret: %d\n", ret);
-  return 0;
+  int successes = 0;
+  int failures = 0;
+  int healthy = 0;
+
+  while (1) {
+    if (run_child(argc, argv)) {
+      /* Returned non-zero, therefore failure */
+      successes = 0;
+      failures += 1;
+    } else {
+      /* Returned 0; therefore success. */
+      failures = 0;
+      successes += 1;
+    }
+
+    if (successes >= 3) {
+      healthy = 100;
+    }
+
+    if (failures >= 3) {
+      healthy = 0;
+    }
+
+    if (healthy) {
+      // send_healthy(*prefix);
+    } else {
+      // send_unhealthy(*prefix);
+    }
+    sleep(30);
+  }
 }
 
 void print_args(int argc, char *argv[]) {

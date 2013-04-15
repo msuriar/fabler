@@ -38,8 +38,7 @@ void create_child(void) {
 
 int child(void) {
   char *program = "true";
-  char *argv[1];
-  argv[0] = program;
+  char *argv[] = { program, NULL };
   int ret;
   ret = execvp(program, argv);
   return ret;

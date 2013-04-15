@@ -1,0 +1,6 @@
+< Remosi> I figure you should write a C daemon that takes  (v4) prefix and a
+command to run. It runs the command every 30s, if the command returns exit
+level 0 3 times in a row, then it starts sending ripv2 packets with the prefix,
+if it returns non zero 3 times in a row, it sends ripv2 packets with the
+distance set to infinity.
+< Remosi> should be a simple C program

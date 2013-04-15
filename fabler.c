@@ -8,10 +8,15 @@ void create_child(void);
 int child(void);
 int parent(void);
 
+int run_child(int argc, char *argv[]);
+
 int main(int argc, char *argv[])
 {
-  print_args(argc, argv);
-  create_child();
+  char *prefix = argv[1];
+  int ret = 1000;
+  ret = run_child(argc, argv);
+  printf("Prefix: %s\n", prefix);
+  printf("Ret: %d\n", ret);
   return 0;
 }
 
@@ -25,7 +30,7 @@ void print_args(int argc, char *argv[]) {
 
 void create_child(void) {
   pid_t childPid;
-  childPid = fork();
+  childPid = vfork();
 
   if (childPid != 0) {
     printf("I'm the parent! My child is %d\n", childPid);
@@ -50,4 +55,20 @@ int parent(void) {
   finished = wait(&status);
   printf("Child process with PID %d terminated with exit status %d.\n", finished, status);
   return status;
+}
+
+int run_child(int argc, char *argv[]) {
+  int status = 0;
+  pid_t childPid;
+
+  childPid = vfork();
+
+  if (childPid != 0) {
+    pid_t finished;
+    finished = wait(&status);
+    return status;
+  } else {
+    execvp(argv[2], &argv[2]);
+    return status;
+  }
 }

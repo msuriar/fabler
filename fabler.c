@@ -1,7 +1,17 @@
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#define RIP_ROUTERS "224.0.0.9"
+#define BUFLEN 512
+#define RIP_PORT 520
+
 
 struct RIPPacket {
   int command;
@@ -17,8 +27,13 @@ void print_args(int argc, char *argv[]);
 void create_child(void);
 int child(void);
 int parent(void);
+void send_packet(void);
 
 int run_child(int argc, char *argv[]);
+
+void diep(char *s) {
+  perror(s);
+}
 
 int main(int argc, char *argv[])
 {
@@ -51,7 +66,8 @@ int main(int argc, char *argv[])
     } else {
       // send_unhealthy(*prefix);
     }
-    sleep(30);
+    send_packet();
+    sleep(1);
   }
 }
 
@@ -105,5 +121,29 @@ int run_child(int argc, char *argv[]) {
   } else {
     execvp(argv[2], &argv[2]);
     return status;
+  }
+}
+
+void send_packet(void) {
+  struct sockaddr_in si_other;
+  int s, slen=sizeof(si_other);
+  char buf[BUFLEN];
+
+  if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))==-1) {
+    diep("socket");
+  }
+
+  memset((char *) &si_other, 0, sizeof(si_other));
+  si_other.sin_family = AF_INET;
+  si_other.sin_port = htons(RIP_PORT);
+
+  if (inet_aton(RIP_ROUTERS, &si_other.sin_addr) == 0) {
+    fprintf(stderr, "inet_aton() failed \n");
+    exit(1);
+  }
+
+  sprintf(buf, "Helloooo!!!!\n");
+  if (sendto(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, slen) == -1) {
+    diep("sendto()");
   }
 }

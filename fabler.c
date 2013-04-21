@@ -86,11 +86,6 @@ struct RIPPacket *create_packet(char *prefix, int metric) {
 }
 
 
-void htonRIPPacket(struct RIPPacket *r, char b[BUFLEN]) {
-  memcpy(b, r, sizeof(*r));
-}
-
-
 void send_packet(struct RIPPacket *r) {
   struct sockaddr_in si_other;
   int s, slen=sizeof(si_other);
@@ -114,7 +109,7 @@ void send_packet(struct RIPPacket *r) {
   } else {
     printf("Didn't create RIP packet.");
   }
-  htonRIPPacket(r, buf);
+  memcpy(buf, r, sizeof(*r));
   if (sendto(s, buf, sizeof(*r), 0, (struct sockaddr *) &si_other, slen) == -1) {
     diep("sendto()");
   }

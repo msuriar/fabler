@@ -34,7 +34,7 @@ struct RIPPacket {
 };
 
 
-char *get_net_from_prefix(const char *prefix) {
+static char *get_net_from_prefix(const char *prefix) {
   char *loc = strchr(prefix, '/');
 
   char *network = strndup(prefix, loc-prefix);
@@ -42,21 +42,21 @@ char *get_net_from_prefix(const char *prefix) {
 }
 
 
-int get_prefix_len_from_prefix(const char *prefix) {
+static int get_prefix_len_from_prefix(const char *prefix) {
   int a,b,c,d,len;
   sscanf(prefix, "%i.%i.%i.%i/%i", &a, &b, &c, &d, &len);
   return len;
 }
 
 
-uint32_t prefix_len_to_subnet_mask(int prefix_len) {
+static uint32_t prefix_len_to_subnet_mask(int prefix_len) {
     uint32_t netmask = UINT32_MAX;
     netmask <<= 32 - prefix_len;
     return netmask;
 }
 
 
-struct RIPPacket *create_packet(const char *prefix, int metric) {
+static struct RIPPacket *create_packet(const char *prefix, int metric) {
   struct RIPPacket *data = malloc(sizeof(struct RIPPacket));
 
   data->command = RIP_CMD_RESPONSE;
@@ -82,7 +82,7 @@ struct RIPPacket *create_packet(const char *prefix, int metric) {
 }
 
 
-void send_packet(struct RIPPacket *r) {
+static void send_packet(struct RIPPacket *r) {
   struct sockaddr_in si_other;
   int s, slen=sizeof(si_other);
   char buf[BUFLEN];
@@ -106,7 +106,7 @@ void send_packet(struct RIPPacket *r) {
 }
 
 
-int run_child(char *argv[]) {
+static int run_child(char *argv[]) {
   int status = 0;
   pid_t childPid;
 
@@ -126,7 +126,7 @@ int run_child(char *argv[]) {
 }
 
 
-void run_loop(char *argv[]) {
+static void run_loop(char *argv[]) {
   int successes = 0;
   int failures = 0;
   int healthy = 0;

@@ -1,4 +1,4 @@
-CFLAGS=-Wall -Wextra -g
+CFLAGS=-Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -g -O2
 
 all: fabler
 

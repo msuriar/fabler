@@ -1,5 +1,6 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,13 +15,13 @@
 
 
 struct RIPPacket {
-  int command;
-  int version;
-  int afi;
-  int ip_address;
-  int subnet_mask;
-  int next_hop;
-  int metric;
+  uint8_t command;
+  uint8_t version;
+  uint8_t afi;
+  uint32_t ip_address;
+  uint32_t subnet_mask;
+  uint32_t next_hop;
+  uint32_t metric;
 };
 
 void print_args(int argc, char *argv[]);

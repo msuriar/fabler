@@ -78,7 +78,6 @@ struct RIPPacket *create_packet(char *prefix, int metric) {
 
   // Subnet mask
   int prefix_len = get_prefix_len_from_prefix(prefix);
-  printf("Prefix length: %d\n", prefix_len);
   data->subnet_mask = htonl(prefix_len_to_subnet_mask(prefix_len));
 
   data->next_hop = 0;

@@ -13,16 +13,33 @@
 #define BUFLEN 512
 #define RIP_PORT 520
 
+#define RIP_CMD_RESPONSE 2
 
 struct RIPPacket {
   uint8_t command;
   uint8_t version;
-  uint8_t afi;
+  uint16_t pad1;
+  uint16_t afi;
+  uint16_t pad2;
   uint32_t ip_address;
   uint32_t subnet_mask;
   uint32_t next_hop;
   uint32_t metric;
 };
+
+struct RIPPacket *create_packet(char *prefix) {
+  struct RIPPacket *data = malloc(sizeof(struct RIPPacket));
+
+  data->command = RIP_CMD_RESPONSE;
+  data->version = 2;
+  data->pad1 = 0;
+  data->afi = htons((uint16_t) AF_INET);
+  data->pad2 = 0;
+  // IP address
+  // Subnet mask
+  data->next_hop = 0;
+  data->metric = htonl((uint32_t) 1);
+}
 
 void print_args(int argc, char *argv[]);
 void create_child(void);

@@ -41,8 +41,7 @@ void diep(char *s) {
 char *get_net_from_prefix(char *prefix) {
   char *loc = strchr(prefix, '/');
 
-  char *network = malloc((loc-prefix)*sizeof(char));
-  strlcpy(network, prefix, loc-prefix+1);
+  char *network = strndup(prefix, loc-prefix);
   return network;
 }
 

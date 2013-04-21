@@ -31,12 +31,10 @@ void send_packet(void);
 
 int run_child(int argc, char *argv[]);
 
-char *get_prefix_len_from_prefix(char *prefix) {
-  char *delim = "/";
-
-  char *net = strtok(prefix, delim);
-  char *prefix_len = strtok(prefix, delim);
-  return prefix_len;
+int get_prefix_len_from_prefix(char *prefix) {
+  int a,b,c,d,len;
+  sscanf(prefix, "%i.%i.%i.%i/%i", &a, &b, &c, &d, &len);
+  return len;
 }
 
 char *get_net_from_prefix(char *prefix) {

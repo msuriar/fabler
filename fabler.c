@@ -15,6 +15,8 @@
 
 #define RIP_CMD_RESPONSE 2
 
+#define RIP_METRIC_UNREACH 16
+
 struct RIPPacket {
   uint8_t command;
   uint8_t version;
@@ -27,7 +29,16 @@ struct RIPPacket {
   uint32_t metric;
 };
 
-struct RIPPacket *create_packet(char *prefix) {
+char *get_net_from_prefix(char *prefix);
+int get_prefix_len_from_prefix(char *prefix);
+
+uint32_t prefix_len_to_subnet_mask(int prefix_len) {
+    uint32_t netmask = UINT32_MAX;
+    netmask <<= 32 - prefix_len;
+    return netmask;
+}
+
+struct RIPPacket *create_packet(char *prefix, int metric) {
   struct RIPPacket *data = malloc(sizeof(struct RIPPacket));
 
   data->command = RIP_CMD_RESPONSE;
@@ -35,10 +46,20 @@ struct RIPPacket *create_packet(char *prefix) {
   data->pad1 = 0;
   data->afi = htons((uint16_t) AF_INET);
   data->pad2 = 0;
+
   // IP address
+  char *net = get_net_from_prefix(prefix);
+  struct in_addr addr;
+  inet_aton(net, &addr);
+  data->ip_address = addr.s_addr;
+
   // Subnet mask
+  int prefix_len = get_prefix_len_from_prefix(prefix);
+  printf("Prefix length: %d\n", prefix_len);
+  data->subnet_mask = htonl(prefix_len_to_subnet_mask(prefix_len));
+
   data->next_hop = 0;
-  data->metric = htonl((uint32_t) 1);
+  data->metric = htonl((uint32_t) metric);
 
   return data;
 }
@@ -51,7 +72,7 @@ void print_args(int argc, char *argv[]);
 void create_child(void);
 int child(void);
 int parent(void);
-void send_packet(void);
+void send_packet(struct RIPPacket *r);
 
 int run_child(int argc, char *argv[]);
 
@@ -78,6 +99,9 @@ void run_loop(int argc, char *argv[]) {
   int failures = 0;
   int healthy = 0;
 
+  struct RIPPacket *healthy_update = create_packet(argv[1], 1);
+  struct RIPPacket *unhealthy_update = create_packet(argv[1], RIP_METRIC_UNREACH);
+
   for (int i=0; i < 10; i++) {
     if (run_child(argc, argv)) {
       /* Returned non-zero, therefore failure */
@@ -98,12 +122,10 @@ void run_loop(int argc, char *argv[]) {
     }
 
     if (healthy) {
-      // send_healthy(*prefix);
+      send_packet(healthy_update);
     } else {
-      // send_unhealthy(*prefix);
+      send_packet(unhealthy_update);
     }
-    printf("About to send packet \n");
-    send_packet();
     sleep(1);
   }
 }
@@ -161,7 +183,7 @@ int run_child(int argc, char *argv[]) {
   }
 }
 
-void send_packet(void) {
+void send_packet(struct RIPPacket *r) {
   struct sockaddr_in si_other;
   int s, slen=sizeof(si_other);
   char buf[BUFLEN];
@@ -179,7 +201,6 @@ void send_packet(void) {
     exit(1);
   }
 
-  struct RIPPacket *r = create_packet("1.2.3.4/5");
   if (r != NULL) {
     printf("Created RIP packet");
   } else {
@@ -199,6 +220,8 @@ int main(int argc, char *argv[])
   //  int pfl = get_prefix_len_from_prefix(prefix);
   //  printf("net: %s\n", net);
   //  printf("pfl: %i\n", pfl);
-  send_packet();
+  char *prefix = argv[1];
+  struct RIPPacket *r = create_packet(prefix, 1);
+  send_packet(r);
   exit(0);
 }

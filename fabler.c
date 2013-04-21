@@ -39,6 +39,12 @@ struct RIPPacket *create_packet(char *prefix) {
   // Subnet mask
   data->next_hop = 0;
   data->metric = htonl((uint32_t) 1);
+
+  return data;
+}
+
+void htonRIPPacket(struct RIPPacket *r, char b[BUFLEN]) {
+  memcpy(b, r, sizeof(*r));
 }
 
 void print_args(int argc, char *argv[]);
@@ -72,7 +78,7 @@ void run_loop(int argc, char *argv[]) {
   int failures = 0;
   int healthy = 0;
 
-  for (int i=0; i < 1; i++) {
+  for (int i=0; i < 10; i++) {
     if (run_child(argc, argv)) {
       /* Returned non-zero, therefore failure */
       successes = 0;
@@ -96,6 +102,7 @@ void run_loop(int argc, char *argv[]) {
     } else {
       // send_unhealthy(*prefix);
     }
+    printf("About to send packet \n");
     send_packet();
     sleep(1);
   }
@@ -172,20 +179,26 @@ void send_packet(void) {
     exit(1);
   }
 
-  sprintf(buf, "Helloooo!!!!\n");
-  if (sendto(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, slen) == -1) {
+  struct RIPPacket *r = create_packet("1.2.3.4/5");
+  if (r != NULL) {
+    printf("Created RIP packet");
+  } else {
+    printf("Didn't create RIP packet.");
+  }
+  htonRIPPacket(r, buf);
+  if (sendto(s, buf, sizeof(*r), 0, (struct sockaddr *) &si_other, slen) == -1) {
     diep("sendto()");
   }
 }
 
 int main(int argc, char *argv[])
 {
-  char *prefix = argv[1];
-  printf("prefix: %s\n", prefix);
-  char *net = get_net_from_prefix(prefix);
-  int pfl = get_prefix_len_from_prefix(prefix);
-  printf("net: %s\n", net);
-  printf("pfl: %i\n", pfl);
-  // run_loop(argc, argv);
+  //  char *prefix = argv[1];
+  //  printf("prefix: %s\n", prefix);
+  //  char *net = get_net_from_prefix(prefix);
+  //  int pfl = get_prefix_len_from_prefix(prefix);
+  //  printf("net: %s\n", net);
+  //  printf("pfl: %i\n", pfl);
+  send_packet();
   exit(0);
 }

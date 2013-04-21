@@ -31,18 +31,31 @@ void send_packet(void);
 
 int run_child(int argc, char *argv[]);
 
+char *get_prefix_len_from_prefix(char *prefix) {
+  char *delim = "/";
+
+  char *net = strtok(prefix, delim);
+  char *prefix_len = strtok(prefix, delim);
+  return prefix_len;
+}
+
+char *get_net_from_prefix(char *prefix) {
+  char *delim = "/";
+
+  char *net = strtok(prefix, delim);
+  return net;
+}
+
 void diep(char *s) {
   perror(s);
 }
 
-int main(int argc, char *argv[])
-{
-  char *prefix = argv[1];
+int run_loop(int argc, char *argv[]) {
   int successes = 0;
   int failures = 0;
   int healthy = 0;
 
-  while (1) {
+  for (int i=0; i < 1; i++) {
     if (run_child(argc, argv)) {
       /* Returned non-zero, therefore failure */
       successes = 0;
@@ -146,4 +159,15 @@ void send_packet(void) {
   if (sendto(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, slen) == -1) {
     diep("sendto()");
   }
+}
+
+int main(int argc, char *argv[])
+{
+  char *prefix = argv[1];
+  printf("prefix: %s\n", prefix);
+  char *net = get_net_from_prefix(prefix);
+  char *pfl = get_prefix_len_from_prefix(prefix);
+  printf("net: %s\n", net);
+  printf("pfl: %s\n", pfl);
+  // run_loop(argc, argv);
 }

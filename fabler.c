@@ -1,5 +1,6 @@
 #include <arpa/inet.h>
 #include <err.h>
+#include <errno.h>
 #include <netinet/in.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -116,8 +117,11 @@ int run_child(char *argv[]) {
     finished = wait(&status);
     return status;
   } else {
-    execvp(argv[2], &argv[2]);
-    return status;
+    if (execvp(argv[2], &argv[2]) == -1) {
+      return errno;
+    } else {
+      return status;
+    }
   }
 }
 

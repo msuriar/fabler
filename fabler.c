@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <err.h>
 #include <netinet/in.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -30,12 +31,6 @@ struct RIPPacket {
   uint32_t next_hop;
   uint32_t metric;
 };
-
-
-void diep(char *s) {
-  perror(s);
-  exit(1);
-}
 
 
 char *get_net_from_prefix(char *prefix) {
@@ -92,7 +87,7 @@ void send_packet(struct RIPPacket *r) {
   char buf[BUFLEN];
 
   if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))==-1) {
-    diep("socket");
+    err(50, "Unable to create socket.\n");
   }
 
   memset((char *) &si_other, 0, sizeof(si_other));
@@ -100,8 +95,7 @@ void send_packet(struct RIPPacket *r) {
   si_other.sin_port = htons(RIP_PORT);
 
   if (inet_aton(RIP_ROUTERS, &si_other.sin_addr) == 0) {
-    fprintf(stderr, "inet_aton() failed \n");
-    exit(1);
+    err(51, "inet_aton failed\n");
   }
 
   if (r != NULL) {
@@ -111,7 +105,7 @@ void send_packet(struct RIPPacket *r) {
   }
   memcpy(buf, r, sizeof(*r));
   if (sendto(s, buf, sizeof(*r), 0, (struct sockaddr *) &si_other, slen) == -1) {
-    diep("sendto()");
+    err(52, "Error sending packet.\n");
   }
 }
 
@@ -175,7 +169,7 @@ void run_loop(char *argv[]) {
 int main(int argc, char *argv[])
 {
   if (argc < 3) {
-    diep("Insufficient number of arguments!");
+    err(10, "Insufficient number of arguments!");
   }
 
   run_loop(argv);

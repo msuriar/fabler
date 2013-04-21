@@ -38,10 +38,11 @@ int get_prefix_len_from_prefix(char *prefix) {
 }
 
 char *get_net_from_prefix(char *prefix) {
-  char *delim = "/";
+  char *loc = strchr(prefix, '/');
 
-  char *net = strtok(prefix, delim);
-  return net;
+  char *network = malloc((loc-prefix)*sizeof(char));
+  strlcpy(network, prefix, loc-prefix+1);
+  return network;
 }
 
 void diep(char *s) {

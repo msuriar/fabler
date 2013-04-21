@@ -49,7 +49,7 @@ void diep(char *s) {
   perror(s);
 }
 
-int run_loop(int argc, char *argv[]) {
+void run_loop(int argc, char *argv[]) {
   int successes = 0;
   int failures = 0;
   int healthy = 0;
@@ -165,8 +165,9 @@ int main(int argc, char *argv[])
   char *prefix = argv[1];
   printf("prefix: %s\n", prefix);
   char *net = get_net_from_prefix(prefix);
-  char *pfl = get_prefix_len_from_prefix(prefix);
+  int pfl = get_prefix_len_from_prefix(prefix);
   printf("net: %s\n", net);
-  printf("pfl: %s\n", pfl);
+  printf("pfl: %i\n", pfl);
   // run_loop(argc, argv);
+  exit(0);
 }

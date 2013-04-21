@@ -98,11 +98,6 @@ void send_packet(struct RIPPacket *r) {
     err(51, "inet_aton failed\n");
   }
 
-  if (r != NULL) {
-    printf("Created RIP packet");
-  } else {
-    printf("Didn't create RIP packet.");
-  }
   memcpy(buf, r, sizeof(*r));
   if (sendto(s, buf, sizeof(*r), 0, (struct sockaddr *) &si_other, slen) == -1) {
     err(52, "Error sending packet.\n");

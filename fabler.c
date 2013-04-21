@@ -108,9 +108,7 @@ static void send_packet(struct RIPPacket *r) {
 
 static int run_child(char *argv[]) {
   int status = 0;
-  pid_t childPid;
-
-  childPid = vfork();
+  pid_t childPid = vfork();
 
   if (childPid != 0) {
     pid_t finished;

@@ -21,6 +21,13 @@
 
 #define SLEEP_INTERVAL 30
 
+// Global variables.
+pid_t child_pid = -1;
+int successes = 0;
+int failures = 0;
+int healthy = 0;
+
+
 struct RIPPacket {
   uint8_t command;
   uint8_t version;
@@ -125,10 +132,6 @@ static int run_child(char *argv[]) {
 
 
 static void run_loop(char *argv[]) {
-  int successes = 0;
-  int failures = 0;
-  int healthy = 0;
-
   char *prefix = argv[1];
 
   struct RIPPacket *healthy_update = create_packet(prefix, 1);
@@ -161,7 +164,6 @@ static void run_loop(char *argv[]) {
     sleep(SLEEP_INTERVAL);
   }
 }
-
 
 int main(int argc, char *argv[])
 {

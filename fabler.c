@@ -2,6 +2,7 @@
 #include <err.h>
 #include <errno.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,9 +21,10 @@
 #define RIP_METRIC_UNREACH 16
 
 #define SLEEP_INTERVAL 30
+#define CMD_TIMEOUT 25
 
 // Global variables.
-pid_t child_pid = -1;
+volatile int kill_child = -1;
 int successes = 0;
 int failures = 0;
 int healthy = 0;
@@ -40,6 +42,10 @@ struct RIPPacket {
   uint32_t metric;
 };
 
+static void catch_child(int sig) {
+  (void)sig;
+  kill_child = 0;
+}
 
 static char *get_net_from_prefix(const char *prefix) {
   char *loc = strchr(prefix, '/');
@@ -113,18 +119,40 @@ static void send_packet(struct RIPPacket *r) {
 }
 
 
-static int run_child(char *argv[]) {
+static int run_child(int timeout, char *argv[]) {
   int status = 0;
   pid_t childPid = vfork();
 
   if (childPid != 0) {
-    pid_t finished;
-    finished = wait(&status);
+    // Parent process
+    // Assume child will be killed.
+    kill_child = 1;
+
+    signal(SIGCHLD, catch_child);
+    // Sleep for specified timeout.
+    sleep(timeout);
+
+    if (kill_child) {
+      // Kill the child process group.
+      status = -10;
+      int kill_result = killpg(childPid, SIGKILL);
+      if (kill_result != 0) {
+        err(errno, "Failed to kill child process group!\n");
+      }
+    } else {
+      // Or don't
+      pid_t finished;
+      finished = wait(&status);
+    }
     return status;
   } else {
+    // Child. Set process group, then exec.
+    setpgrp();
     if (execvp(argv[2], &argv[2]) == -1) {
       return errno;
     } else {
+      // Here to suppress compiler warnings; exec has succeeded, so never gets
+      // hit.
       return status;
     }
   }
@@ -138,7 +166,7 @@ static void run_loop(char *argv[]) {
   struct RIPPacket *unhealthy_update = create_packet(prefix, RIP_METRIC_UNREACH);
 
   while (1) {
-    if (run_child(argv)) {
+    if (run_child(CMD_TIMEOUT, argv)) {
       /* Returned non-zero, therefore failure */
       successes = 0;
       failures += 1;
@@ -161,7 +189,7 @@ static void run_loop(char *argv[]) {
     } else {
       send_packet(unhealthy_update);
     }
-    sleep(SLEEP_INTERVAL);
+    sleep(SLEEP_INTERVAL-CMD_TIMEOUT);
   }
 }
 

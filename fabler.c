@@ -196,7 +196,7 @@ static void run_loop(char *argv[]) {
 int main(int argc, char *argv[])
 {
   if (argc < 3) {
-    err(10, "Insufficient number of arguments!");
+    err(10, "Usage: fabler <prefix>/<len> <healthcheck_cmd> [<healtcheck_args>...]");
   }
 
   run_loop(argv);
